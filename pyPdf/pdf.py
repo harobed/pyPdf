@@ -1726,7 +1726,11 @@ def _alg32(password, rev, keylen, owner_entry, p_entry, id1_entry, metadata_encr
     m.update(p_entry)
     # 5. Pass the first element of the file's file identifier array to the MD5
     # hash function.
-    m.update(id1_entry)
+    if isinstance(id1_entry, str):
+        m.update(id1_entry)
+    else:
+        m.update(id1_entry.original_bytes)
+
     # 6. (Revision 3 or greater) If document metadata is not being encrypted,
     # pass 4 bytes with the value 0xFFFFFFFF to the MD5 hash function.
     if rev >= 3 and not metadata_encrypt:
@@ -1824,7 +1828,11 @@ def _alg35(password, rev, keylen, owner_entry, p_entry, id1_entry, metadata_encr
     # of the ID entry in the document's trailer dictionary; see Table 3.13 on
     # page 73) to the hash function and finish the hash.  (See implementation
     # note 25 in Appendix H.) 
-    m.update(id1_entry)
+    if isinstance(id1_entry, str):
+        m.update(id1_entry)
+    else:
+        m.update(id1_entry.original_bytes)
+
     md5_hash = m.digest()
     # 4. Encrypt the 16-byte result of the hash, using an RC4 encryption
     # function with the encryption key from step 1. 
