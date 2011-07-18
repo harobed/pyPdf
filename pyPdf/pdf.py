@@ -189,15 +189,22 @@ class PdfFileWriter(object):
     ##
     # Encrypt this PDF file with the PDF Standard encryption handler.
     # @param user_pwd The "user password", which allows for opening and reading
-    # the PDF file with the restrictions provided.
+    # the PDF file with the restrictions provided. If you wouldn't set user password
+    # you can set user_pwd parameter on "" (empty string).
     # @param owner_pwd The "owner password", which allows for opening the PDF
     # files without any restrictions.  By default, the owner password is the
     # same as the user password.
     # @param use_128bit Boolean argument as to whether to use 128bit
     # encryption.  When false, 40bit encryption will be used.  By default, this
     # flag is on.
-    def encrypt(self, user_pwd, owner_pwd = None, use_128bit = True):
-        import time, random
+    # @param user_access_permissions specifying which operations shall be permitted 
+    # when the document is opened with user access. See UserAccessPermissions constant list.
+    #
+    # Example, to allow print document in draft mode and high quality mode :
+    #
+    # user_access_permissions = UserAccessPermissions.print_document | UserAccessPermissions.high_quality_document_printing
+    def encrypt(self, user_pwd, owner_pwd = None, use_128bit = True, user_access_permissions = 0):
+        import md5, time, random
         if owner_pwd == None:
             owner_pwd = user_pwd
         if use_128bit:
@@ -208,17 +215,16 @@ class PdfFileWriter(object):
             V = 1
             rev = 2
             keylen = 40 / 8
-        # permit everything:
-        P = -1
+
         O = ByteStringObject(_alg33(owner_pwd, user_pwd, rev, keylen))
         ID_1 = md5(repr(time.time())).digest()
         ID_2 = md5(repr(random.random())).digest()
         self._ID = ArrayObject((ByteStringObject(ID_1), ByteStringObject(ID_2)))
         if rev == 2:
-            U, key = _alg34(user_pwd, O, P, ID_1)
+            U, key = _alg34(user_pwd, O, user_access_permissions, ID_1)
         else:
             assert rev == 3
-            U, key = _alg35(user_pwd, rev, keylen, O, P, ID_1, False)
+            U, key = _alg35(user_pwd, rev, keylen, O, user_access_permissions, ID_1, False)
         encrypt = DictionaryObject()
         encrypt[NameObject("/Filter")] = NameObject("/Standard")
         encrypt[NameObject("/V")] = NumberObject(V)
@@ -227,7 +233,7 @@ class PdfFileWriter(object):
         encrypt[NameObject("/R")] = NumberObject(rev)
         encrypt[NameObject("/O")] = ByteStringObject(O)
         encrypt[NameObject("/U")] = ByteStringObject(U)
-        encrypt[NameObject("/P")] = NumberObject(P)
+        encrypt[NameObject("/P")] = NumberObject(user_access_permissions)
         self._encrypt = self._addObject(encrypt)
         self._encrypt_key = key
 
