@@ -1,2 +1,6 @@
 *.pyc
 *.swp
+tests/out_pdf/
+docs/_build/
+pyPdf.egg-info/
+upload.bash

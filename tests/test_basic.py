@@ -46,6 +46,11 @@ def test_merge():
 
     output.write(_out_file('test_merge.pdf'))
 
+    assert filecmp.cmp(
+        os.path.join(here, 'out_pdf', 'test_merge.pdf'),
+        os.path.join(here, 'out_pdf', 'test_merge.pdf_valid')
+    )
+
 def test_add_bookmark():
     output = PdfFileWriter()
     output.addPage(PdfFileReader(_src_file('document1.pdf')).getPage(0))
@@ -57,3 +62,7 @@ def test_add_bookmark():
     output.addBookmark("Document 3", 2)
 
     output.write(_out_file('test_add_bookmark.pdf'))
+    assert filecmp.cmp(
+        os.path.join(here, 'out_pdf', 'test_add_bookmark.pdf'),
+        os.path.join(here, 'out_pdf', 'test_add_bookmark.pdf_valid')
+    )
